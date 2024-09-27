@@ -337,7 +337,7 @@ async def get_skills(page, selector, dictionary, database):
 
         # Vérification si l'élément et son texte existent
         if element_text is not None:
-            database["raw_description"] = element_text
+            database["description"] = element_text
 
             for key, values in dictionary.items():
                 extracted_words = [
@@ -347,7 +347,7 @@ async def get_skills(page, selector, dictionary, database):
 
         else:
             logging.warning(f"No job description found for selector '{selector}'")
-            database["raw_description"] = None  # Ajouter une valeur par défaut si l'élément est manquant
+            database["description"] = None  # Ajouter une valeur par défaut si l'élément est manquant
 
     except Exception as e:
         logging.error(f"Error extracting skills: {e}")
