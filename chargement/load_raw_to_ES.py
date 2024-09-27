@@ -1,5 +1,6 @@
 import json
 import time
+import hashlib
 from elasticsearch import Elasticsearch, helpers
 
 es = None
@@ -17,22 +18,34 @@ for i in range(retries):
 else:
     raise ValueError("Impossible de se connecter à ElasticSearch après plusieurs essais")
 
-def load_json_to_elasticsearch(json_file_path, index_name):
-    with open(json_file_path, 'r', encoding='utf-8') as file:
-        data = json.load(file)
-    
-    actions = []
-    for doc in data:
-        actions.append({
-            "_index": index_name,
-            "_source": doc
-        })
+def generate_unique_id(job_offer):
+    job_str = json.dumps(job_offer, sort_keys=True).encode('utf-8')
+    return hashlib.md5(job_str).hexdigest()
 
-    helpers.bulk(es, actions)
-    print(f"Chargement terminé pour l'index {index_name}")
+def load_data_to_elasticsearch(index_name, data):
+    for job in data:
+        # Générer un identifiant unique pour chaque offre de travail
+        job_id = generate_unique_id(job)
+        
+        # Charger les données dans ElasticSearch avec un ID unique
+        es.index(index=index_name, id=job_id, body=job)
 
-# Charger le fichier Indeed dans ElasticSearch
-load_json_to_elasticsearch('/app/indeed.json', 'data_jobs_raw_indeed') #insérer votre file_path
+# Charger les fichiers JSON
+with open('/app/indeed.json', 'r', encoding='utf-8') as indeed_file:
+    indeed_data = json.load(indeed_file)
 
-# Charger le fichier FranceTravail dans ElasticSearch
-load_json_to_elasticsearch('/app/franceTravail.json', 'data_jobs_raw_francetravail') #insérer votre file_path
+with open('/app/franceTravail.json', 'r', encoding='utf-8') as france_travail_file:
+    france_travail_data = json.load(france_travail_file)
+
+# Fusionner les deux ensembles de données
+all_jobs = indeed_data + france_travail_data
+
+# Créer un index si ce n'est pas déjà fait
+index_name = 'job_offers'
+if not es.indices.exists(index=index_name):
+    es.indices.create(index=index_name)
+
+# Charger les données dans ElasticSearch
+load_data_to_elasticsearch(index_name, all_jobs)
+
+print(f"{len(all_jobs)} offres de travail chargées dans l'index {index_name} avec succès.")
