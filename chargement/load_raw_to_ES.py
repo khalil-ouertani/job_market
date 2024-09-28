@@ -48,4 +48,9 @@ if not es.indices.exists(index=index_name):
 # Charger les données dans ElasticSearch
 load_data_to_elasticsearch(index_name, all_jobs)
 
+with open("/data/chargement_done.txt", "w") as f:
+    f.write("chargement completed")
+
+print("Fichier de signalisation créé avec succès")
+
 print(f"{len(all_jobs)} offres de travail chargées dans l'index {index_name} avec succès.")

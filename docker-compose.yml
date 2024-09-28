@@ -37,8 +37,22 @@ services:
       - elasticsearch
     container_name: chargement
     networks:
-    - es-net
+      - es-net
+    volumes:
+      - shared-data:/data
     command: ["/usr/bin/wait-for-it.sh", "es-container:9200", "--", "python", "executor.py"]
+
+  ml-processing:
+    build: ./ML
+    depends_on:
+      - elasticsearch
+      - chargement
+    container_name: ml-processing
+    networks:
+      - es-net
+    volumes:
+      - shared-data:/data
+    command: ["bash", "-c", "while [ ! -f /data/chargement_done.txt ]; do echo 'Waiting for chargement to complete...'; sleep 15; done; /app/run_all.sh"]
 
 networks:
   es-net:
@@ -46,4 +60,6 @@ networks:
 
 volumes:
   es-data:
+    driver: local
+  shared-data:
     driver: local

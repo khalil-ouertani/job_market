@@ -5,16 +5,23 @@ from nltk.corpus import stopwords
 from sklearn.preprocessing import normalize
 import numpy as np
 import nltk
+import time
 
-# Assurez-vous d'avoir téléchargé les données nécessaires pour NLTK
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('punkt_tab')
 
-# Connexion à Elasticsearch
-es = Elasticsearch([{'host': 'localhost', 'port': 9200, 'scheme': 'http'}])
+es = Elasticsearch(['http://es-container:9200'])
 
 index_name = 'job_offers'
+
+def wait_for_index(es, index_name):
+    while not es.indices.exists(index=index_name):
+        print(f"Waiting for index {index_name} to be available...")
+        time.sleep(10)
+    print(f"Index {index_name} is now available.")
+
+wait_for_index(es, "job_offers")
 
 # Récupérer les stopwords français
 stop_words = set(stopwords.words('french'))

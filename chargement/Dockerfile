@@ -10,8 +10,6 @@ COPY wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN chmod +x /usr/bin/wait-for-it.sh
 
 
-# Définir le dossier de travail
 WORKDIR /app
 
-# Commande à exécuter lorsque le conteneur démarre
 CMD ["python", "executor.py"]

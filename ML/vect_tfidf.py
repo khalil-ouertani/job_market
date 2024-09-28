@@ -1,9 +1,16 @@
 from elasticsearch import Elasticsearch
 from sklearn.feature_extraction.text import TfidfVectorizer
+import time
 
-es = Elasticsearch([{'host': 'localhost', 'port': 9200, 'scheme': 'http'}])
+es = Elasticsearch(['http://es-container:9200'])
 
 index_name = 'job_offers'
+
+def wait_for_index(es, index_name):
+    while not es.indices.exists(index=index_name):
+        print(f"Waiting for index {index_name} to be available...")
+        time.sleep(10)
+    print(f"Index {index_name} is now available.")
 
 def get_job_descriptions(index_name):
     query = {
@@ -27,6 +34,8 @@ def get_job_descriptions(index_name):
         job_offers.append(job_offer)
 
     return job_offers
+
+wait_for_index(es, "job_offers")
 
 # Récupérer les descriptions d'offres de travail
 job_offers = get_job_descriptions(index_name)
