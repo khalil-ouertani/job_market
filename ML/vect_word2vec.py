@@ -67,6 +67,10 @@ tokenized_descriptions = [preprocess_description(job['description']) for job in 
 # Entraîner le modèle Word2Vec sur les descriptions tokenisées
 model = Word2Vec(sentences=tokenized_descriptions, vector_size=100, window=5, min_count=1, workers=4)
 
+# Enregistrer le modèle entraîné dans un fichier
+model.save("/data/word2vec_model.model")
+print("Modèle Word2Vec enregistré dans 'word2vec_model.model'.")
+
 # Créer une représentation vectorielle de chaque description
 def get_average_word2vec(tokens, model, vector_size):
     # Obtenir les vecteurs des mots présents dans le modèle Word2Vec

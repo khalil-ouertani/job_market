@@ -1,6 +1,7 @@
 from elasticsearch import Elasticsearch
 from sklearn.feature_extraction.text import TfidfVectorizer
 import time
+import pickle
 
 es = Elasticsearch(['http://es-container:9200'])
 
@@ -65,3 +66,10 @@ for doc in tfidf_documents:
     es.index(index=index_tfidf, id=doc["id"], body={"description_vector": doc["description_vector"]})
 
 print(f"Chargement des vecteurs TF-IDF dans l'index '{index_tfidf}' terminé.")
+
+# Sauvegarder le modèle TF-IDF dans un fichier pickle
+tfidf_model_path = "/data/tfidf_vectorizer.pkl"  # Chemin de sauvegarde
+with open(tfidf_model_path, 'wb') as f:
+    pickle.dump(vectorizer, f)
+
+print(f"Modèle TF-IDF sauvegardé dans '{tfidf_model_path}'.")

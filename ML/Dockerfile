@@ -7,7 +7,7 @@ COPY ./vect_tfidf.py /app/tfidf_script.py
 COPY ./vect_word2vec.py /app/word2vec_script.py
 COPY ./run_all.sh /app/run_all.sh
 
-RUN pip install elasticsearch scikit-learn gensim nltk
+RUN pip install elasticsearch scikit-learn==1.3.2 gensim nltk
 
 # Télécharger les ressources NLTK nécessaires
 RUN python -m nltk.downloader punkt stopwords punkt_tab
