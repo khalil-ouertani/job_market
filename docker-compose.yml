@@ -53,6 +53,20 @@ services:
     volumes:
       - shared-data:/data
     command: ["bash", "-c", "while [ ! -f /data/chargement_done.txt ]; do echo 'Waiting for chargement to complete...'; sleep 15; done; /app/run_all.sh"]
+  
+  api:
+    build: ./api
+    depends_on:
+      - elasticsearch
+      - ml-processing
+    container_name: api-container
+    networks:
+      - es-net
+    volumes:
+      - shared-data:/data
+    ports:
+      - 8000:8000
+    command: ["bash", "-c", "while [ ! -f /data/tfidf_vectorizer.pkl ] || [ ! -f /data/word2vec_model.model ]; do echo 'Waiting for models to be available...'; sleep 15; done; uvicorn main:app --host 0.0.0.0 --port 8000"]
 
 networks:
   es-net:

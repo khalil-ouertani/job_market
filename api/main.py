@@ -18,7 +18,7 @@ nltk.download('stopwords')
 nltk.download('punkt_tab')
 
 # Initialisation
-es = Elasticsearch("http://localhost:9200")  # Assurez-vous que l'URL est correcte dans le contexte Docker
+es = Elasticsearch(['http://es-container:9200'])
 
 app = FastAPI()
 
@@ -30,8 +30,8 @@ security = HTTPBasic()
 stop_words = set(stopwords.words('french'))
 
 # Chemins vers les modèles sauvegardés
-word2vec_model_path = "word2vec_model.model"
-tfidf_vectorizer_path = "tfidf_vectorizer.pkl"
+word2vec_model_path = "/data/word2vec_model.model"
+tfidf_vectorizer_path = "/data/tfidf_vectorizer.pkl"
 
 # Charger le modèle Word2Vec
 if os.path.exists(word2vec_model_path):
@@ -166,49 +166,43 @@ def delete_document(document_id: str, user: dict = Depends(authenticate), respon
         return {"result": "deleted"}
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Document not found")
-    
-    
-@app.get("/similarity_tfidf/")
-def get_similar_documents(query: str, n: int = 5, user: dict = Depends(authenticate)):
-    # Convertir la chaîne de caractères en vecteur TF-IDF
-    query_vector = vectorizer.transform([query])
 
-    # Obtenir les descriptions vectorisées de l'index Elasticsearch
+
+@app.post("/documents/word2vec-similarity")
+def get_word2vec_similar_documents(query: str, n: int = 5, user: dict = Depends(authenticate)):
+    # Prétraiter et vectoriser la chaîne de caractères en utilisant Word2Vec
+    query_tokens = preprocess_description(query)
+    query_vector = [word2vec_model.wv[word] for word in query_tokens if word in word2vec_model.wv]
+    
+    if query_vector:
+        query_vector = np.mean(query_vector, axis=0)  # Moyenne des vecteurs des mots pour obtenir un vecteur de phrase
+    else:
+        query_vector = np.zeros(word2vec_model.vector_size)  # Si aucun mot n'existe dans le modèle
+
+    # Récupérer les vecteurs Word2Vec des documents depuis Elasticsearch
     search_body = {
-    "size": n,  # Nombre de résultats que vous souhaitez
-    "_source": ["description_vector"],
-    "query": {
-        "script_score": {
-            "query": {
-                "match_all": {}
-            },
-            "script": {
-                "source": """
-                cosineSimilarity(params.query_vector, 'description_vector') + 1.0
-                """,
-                "params": {
-                    "query_vector": query_vector  # vecteur de la chaîne d'entrée
-                    }
-                }
-            }
+        "size": 2500,  # Limite de la recherche
+        "_source": ["description_vector"],
+        "query": {
+            "match_all": {}
         }
     }
-    es_response = es.search(index="job_offers_tfidf", body=search_body, request_timeout=800)
-
-    # Extraire les vecteurs TF-IDF de chaque description
-    tfidf_vectors = []
+    es_response = es.search(index="job_offers_word2vec", body=search_body, request_timeout=360)
+    
+    # Extraire les descriptions vectorisées et les identifiants des documents
+    doc_vectors = []
     doc_ids = []
     for hit in es_response['hits']['hits']:
-        tfidf_vectors.append(hit["_source"]["description_vector"])
-        doc_ids.append(hit["_id"])
-
-    # Calculer la similarité cosinus
-    similarities = cosine_similarity(query_vector, tfidf_vectors)
-
-    # Trier les similarités et obtenir les 'n' documents les plus similaires
-    sorted_indices = np.argsort(similarities[0])[::-1][:n]  # Trier en ordre décroissant et prendre les 'n' premiers
-    top_n_doc_ids = [doc_ids[idx] for idx in sorted_indices]
-    top_n_similarities = [similarities[0][idx] for idx in sorted_indices]
-
-    # Retourner les identifiants des documents les plus similaires
-    return {f"top_{n}_documents": [{"id": doc_id, "similarity": sim} for doc_id, sim in zip(top_n_doc_ids, top_n_similarities)]}
+        doc_vectors.append(hit['_source']['description_vector'])
+        doc_ids.append(hit['_id'])
+    
+    # Calculer la similarité cosinus entre la requête et chaque document
+    doc_vectors = np.array(doc_vectors)
+    query_vector = query_vector.reshape(1, -1)  # Redimensionner le vecteur de requête
+    similarities = cosine_similarity(query_vector, doc_vectors)[0]
+    
+    # Trouver les n documents les plus similaires
+    most_similar_indices = similarities.argsort()[::-1][:n]
+    most_similar_docs = [(doc_ids[i], similarities[i]) for i in most_similar_indices]
+    
+    return {"most_similar_documents": most_similar_docs}
