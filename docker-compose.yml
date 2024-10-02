@@ -33,6 +33,7 @@ services:
 
   chargement:
     build: ./chargement
+    image: khalilouertani99/job_market_chargement:latest
     depends_on:
       - elasticsearch
     container_name: chargement
@@ -44,6 +45,7 @@ services:
 
   ml-processing:
     build: ./ML
+    image: khalilouertani99/job_market_ml-processing:latest
     depends_on:
       - elasticsearch
       - chargement
@@ -56,6 +58,7 @@ services:
   
   api:
     build: ./api
+    image: khalilouertani99/job_market_api:latest
     depends_on:
       - elasticsearch
       - ml-processing
