@@ -60,9 +60,9 @@ jobs:
       - name: Build and push Docker images to Docker Hub
         run: |
           # Taguer les images construites
-          docker tag ***/job_market_api:latest ${{ secrets.DOCKERHUB_USERNAME }}/job_market_api:latest
-          docker tag ***/job_market_ml-processing:latest ${{ secrets.DOCKERHUB_USERNAME }}/job_market_ml-processing:latest
-          docker tag ***/job_market_chargement:latest ${{ secrets.DOCKERHUB_USERNAME }}/job_market_chargement:latest
+          docker tag job_market_api:latest ${{ secrets.DOCKERHUB_USERNAME }}/job_market_api:latest
+          docker tag job_market_ml-processing:latest ${{ secrets.DOCKERHUB_USERNAME }}/job_market_ml-processing:latest
+          docker tag job_market_chargement:latest ${{ secrets.DOCKERHUB_USERNAME }}/job_market_chargement:latest
           
           # Pusher les images sur Docker Hub
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/job_market_api:latest
