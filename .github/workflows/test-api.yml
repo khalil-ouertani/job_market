@@ -51,6 +51,11 @@ jobs:
         run: |
           pytest tests/test_api.py --disable-warnings
 
+      # Afficher la liste des images Docker
+      - name: List Docker images
+        run: |
+          docker image ls
+
       # Taguer et push les images Docker sur Docker Hub
       - name: Build and push Docker images to Docker Hub
         run: |
