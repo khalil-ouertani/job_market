@@ -1,4 +1,4 @@
-name: API Tests and Docker Push
+name: API Unit Tests & Docker Images Build
 
 on:
   push:
