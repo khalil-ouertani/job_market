@@ -68,6 +68,7 @@ tokenized_descriptions = [preprocess_description(job['description']) for job in 
 model = Word2Vec(sentences=tokenized_descriptions, vector_size=100, window=5, min_count=1, workers=4)
 
 # Enregistrer le modèle entraîné dans un fichier
+# ---TODO--- Supprimer modele s'il existe
 model.save("/data/word2vec_model.model")
 print("Modèle Word2Vec enregistré dans 'word2vec_model.model'.")
 
