@@ -58,7 +58,10 @@ for idx, job_offer in enumerate(job_offers):
 index_tfidf = 'job_offers_tfidf'
 
 # Vérifier si le nouvel index existe, sinon le créer
-if not es.indices.exists(index=index_tfidf):
+if es.indices.exists(index=index_tfidf):
+    es.indices.delete(index=index_tfidf)
+    es.indices.create(index=index_tfidf)
+else:
     es.indices.create(index=index_tfidf)
 
 # Charger les documents avec vecteurs TF-IDF dans Elasticsearch
