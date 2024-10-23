@@ -97,7 +97,10 @@ for idx, job_offer in enumerate(job_offers):
 index_word2vec = 'job_offers_word2vec'
 
 # Vérifier si le nouvel index existe, sinon le créer
-if not es.indices.exists(index=index_word2vec):
+if es.indices.exists(index=index_word2vec):
+    es.indices.delete(index=index_word2vec)
+    es.indices.create(index=index_word2vec)
+else:
     es.indices.create(index=index_word2vec)
 
 # Charger les documents avec vecteurs Word2Vec dans Elasticsearch
