@@ -42,8 +42,14 @@ all_jobs = indeed_data + france_travail_data
 
 # Créer un index si ce n'est pas déjà fait
 index_name = 'job_offers'
-if not es.indices.exists(index=index_name):
+if es.indices.exists(index=index_name):
+    es.indices.delete(index=index)
+    print(f"Indice {index_name} supprimé avec succès.")
     es.indices.create(index=index_name)
+    print(f"Indice {index_name} recréé avec succès.")
+else:
+    es.indices.create(index=index_name)
+    print(f"Indice {index_name} créé avec succès.")
 
 # Charger les données dans ElasticSearch
 load_data_to_elasticsearch(index_name, all_jobs)
