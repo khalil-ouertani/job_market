@@ -13,8 +13,8 @@ for i in range(retries):
             print("Connexion réussie à ElasticSearch")
             break
     except Exception as e:
-        print(f"Essai {i+1}/{retries} : Connexion échouée, nouvelle tentative dans 20 secondes...")
-        time.sleep(20)
+        print(f"Essai {i+1}/{retries} : Connexion échouée, nouvelle tentative dans 50 secondes...")
+        time.sleep(50)
 else:
     raise ValueError("Impossible de se connecter à ElasticSearch après plusieurs essais")
 
@@ -43,7 +43,7 @@ all_jobs = indeed_data + france_travail_data
 # Créer un index si ce n'est pas déjà fait
 index_name = 'job_offers'
 if es.indices.exists(index=index_name):
-    es.indices.delete(index=index)
+    es.indices.delete(index=index_name)
     print(f"Indice {index_name} supprimé avec succès.")
     es.indices.create(index=index_name)
     print(f"Indice {index_name} recréé avec succès.")
