@@ -13,7 +13,7 @@ def test_auth_failure():
     response = requests.get(f"{API_URL}/documents/592a1d2ad89c3694954d3b802639c1a9", auth=('wrong_user', 'wrong_pass'))
     assert response.status_code == 401
 
-# Test de création de document avec succès
+# Test de création de document avec succès 
 def test_create_document():
     payload = {"title": "Test Job", "description": "This is a test job"}
     response = requests.post(f"{API_URL}/documents/add?document_id=test1", json=payload, auth=('admin', 'admin'))
